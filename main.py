@@ -71,6 +71,7 @@ def set_backtest():
 ####################################################################
 def DayTactics(context):
     g.mcad_isring = conduct_dapan_MACD()
+    conduct_dapan_MA()
     if g.mcad_isring == True: 
         sell_stocks(context)
         buy_stocks(context)
@@ -172,7 +173,6 @@ def MACD_CN(close, fastperiod, slowperiod, signalperiod):
 
 def conduct_dapan_MACD():
     dapan = attribute_history('000001.XSHG', 100, '1d','close',df=False,fq='pre')
-    print(dapan['close'])
     macdDIFF, macdDEA, macd = MACD_CN(dapan['close'], 12, 26, 9)
     record(macdDIFF=macdDIFF[-1], macdDEA=macdDEA[-1], macd=macd[-1])
 
@@ -181,6 +181,11 @@ def conduct_dapan_MACD():
     else:
         return False
 
+def conduct_dapan_MA():
+    dapan = attribute_history('000001.XSHG', 30, '1d','close',df=False,fq='pre')
+    ma = talib.MA(dapan['close'],timeperiod = 5,matype=0)
+    print(ma)
+    return ma
 # #每日持仓收益发微信
 # def after_market_close(context):
 #     message='今日信息:\n'
