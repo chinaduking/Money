@@ -4,7 +4,7 @@
 if __name__ == '__main__':
     import jqsdk
     params = {
-        'token':'d1e63b419abd774910d1d76cf0f3a337',
+        'token':'c82ce1636541edbbdc91c40e4484007c',
         'algorithmId':1,
         'baseCapital':1000000,
         'frequency':'day',
@@ -31,7 +31,7 @@ def initialize(context):
     # 每天运行
     run_daily(DayTactics, '8:00')
     # # 每周运行
-    # run_weekly(WeeklyTactics, -1, '20:00')
+    run_weekly(WeeklyTactics, -1, '20:00')
     # # 每月运行
     # run_monthly(MonthlyTactics, -1, time='20:00')
 
@@ -71,19 +71,16 @@ def set_backtest():
 ####################################################################
 def DayTactics(context):
     g.mcad_isring = conduct_dapan_MACD()
-    if g.mcad_isring == True:
-        if context.portfolio.positions.keys() != []:
-            return
-        WeeklyTactics(context)
+    if g.mcad_isring == True: 
+        sell_stocks(context)
         buy_stocks(context)
-        print('buy...............')
+
     else:
-        if context.portfolio.positions.keys() == []:
+        if context.portfolio.positions == {}:
             return
 
-        for stock in g.buy_stock:
+        for stock in context.portfolio.positions:
             order_target_value(stock, 0)
-        print('sell.................')
 
 def WeeklyTactics(context):
     code = get_stocks_pool('000001.XSHG')
@@ -132,7 +129,7 @@ def buy_stocks(context):
 
     # 优化函数调用中忽略的唯一输入是起始参数列表(对权重的初始猜测)。我们简单的使用平均分布。
     optv = sco.minimize(min_variance, num * [1. / num, ], method='SLSQP', bounds=bnds, constraints=cons)
-    print(optv['x'].round(3))
+    # print(optv['x'].round(3))
 
     port_value = context.portfolio.portfolio_value
     for stock in g.buy_stock:
@@ -167,8 +164,9 @@ def conduct_dapan_stoploss(context, security_code, days, bench):
 
 # 同花顺和通达信等软件中的MACD
 def MACD_CN(close, fastperiod, slowperiod, signalperiod):
-    macdDIFF, macdDEA, macd = tl.MACDEXT(close, fastperiod=fastperiod, fastmatype=1, slowperiod=slowperiod,
-                                         slowmatype=1, signalperiod=signalperiod, signalmatype=1)
+    # macdDIFF, macdDEA, macd = tl.MACDEXT(close, fastperiod=fastperiod, fastmatype=1, slowperiod=slowperiod,
+    #                                      slowmatype=1, signalperiod=signalperiod, signalmatype=1)
+    macdDIFF, macdDEA, macd = tl.MACD(close, fastperiod, slowperiod, signalperiod)
     macd = macd * 2
     return macdDIFF, macdDEA, macd
 
@@ -183,6 +181,35 @@ def conduct_dapan_MACD():
     else:
         return False
 
+# #每日持仓收益发微信
+# def after_market_close(context):
+#     message='今日信息:\n'
+    
+#     print '---------------今日信息-------------------'
+#     tmp = '时间:{}'.format(context.current_dt)
+#     message+=(tmp+'\n')
+#     print tmp
+#     tmp = '持仓:{}个股票'.format(len(context.portfolio.positions.keys()))
+#     message+=(tmp+'\n')
+#     print tmp
+#     for stock in context.portfolio.positions.keys():
+#         if stock in context.portfolio.positions.keys():
+#             tmp = ( "  %s（%s）持仓%s股，持仓成本：%s元，现价：%s元 ;\n" %( get_security_info(stock).display_name,stock,context.portfolio.positions[stock].total_amount,context.portfolio.positions[stock].avg_cost ,context.portfolio.positions[stock].price))
+#             message+=(tmp+'\n')
+#             print tmp
+#     if g.init_portfolio_value!=0:
+#         tmp = '账户资产：{}元'.format(context.portfolio.total_value)
+#         message+=(tmp+'\n')
+#         print tmp
+#         tmp = '资金净值：{}'.format(context.portfolio.total_value/context.portfolio.starting_cash)
+#         message+=(tmp+'\n')
+#         print tmp        
+#         tmp = '当日资金变化:{}元,({:.2f}%)'.format(context.portfolio.total_value-g.init_portfolio_value,(context.portfolio.total_value-g.init_portfolio_value)/g.init_portfolio_value*100)
+#         message+=(tmp+'\n')
+#         print tmp
+#     #发送微信通知
+#     if len(message)>0:
+#         send_message(message)
 #------------------------------Tactics------------------------------#
 # FAP:固定资产/总资产 比率,越小越好
 def Rank_by_FAP(code):
