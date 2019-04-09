@@ -1,27 +1,15 @@
 # coding: utf-8
 
 ##### 下方代码为 IDE 运行必备代码 #####
-if __name__ == '__main__':
-    import jqsdk
-    params = {
-        'token':'55d808531808431e12680bc3d317be6d',
-        'algorithmId':1,
-        'baseCapital':1000000,
-        'frequency':'day',
-        'startTime':'2019-01-01',
-        'endTime':'2019-04-08',
-        'name':"Test1",
-    }
-    jqsdk.run(params)
 
 ##########################################################################
 import jqdata
-from jqlib.technical_analysis import *
 import scipy.optimize as sco
 from kuanke.wizard import *
 import numpy as np
 import talib as tl
 import pandas as pd
+from jqlib.technical_analysis import *
 
 ###########################################################################
 def initialize(context):
@@ -61,7 +49,7 @@ def DayTactics(context):
     conduct_dapan_MA(context)
     if g.danger:
         return
-
+        
     sell_stocks(context)
     buy_stocks(context)
 
@@ -183,7 +171,7 @@ def conduct_dapan_stoploss(context, security_code, days, bench):
 
 
 ########################技术指标###################################
-def conduct_dapan_MACD():
+def conduct_dapan_MACD(context):
     macd_dif, macd_dea, macd_macd = MACD('000001.XSHG',check_date=context.current_dt.date(), SHORT = 12, LONG = 26, MID = 9)
     # record(macdDIFF=macdDIFF[-1], macdDEA=macdDEA[-1], macd=macd[-1])
     if macd_dea[-1] - macd_dea[-2] > 0:
@@ -192,8 +180,8 @@ def conduct_dapan_MACD():
         return False
 
 def conduct_dapan_MA(context):
-    ma1 = MA('000001.XSHG',context.current_dt.date(),timeperiod=1)
-    ma30 = MA('000001.XSHG',context.current_dt.date(),timeperiod=30)
+    ma1 = MA('000001.XSHG',check_date=context.current_dt.date(),timeperiod=1)
+    ma30 = MA('000001.XSHG',check_date=context.current_dt.date(),timeperiod=30)
     if ma1 > ma30:
         g.danger = False
         # order_target_value('511880.XSHG',0)
@@ -248,8 +236,8 @@ def Rank_by_FAP(code):
     df.columns = ['code'] + ['FAP']
 
     # 升序排序
-    df = df.sort_values(by = 'FAP',axis = 0,ascending=True)    #python3
-    # df = df.sort(columns = 'FAP',axis = 0,ascending=True)    #python2
+    # df = df.sort_values(by = 'FAP',axis = 0,ascending=True)    #python3
+    df = df.sort(columns = 'FAP',axis = 0,ascending=True)    #python2
     return df
 
 # CMV:流通市值,越小越好
@@ -266,6 +254,6 @@ def Rank_by_CMV(code):
     df.columns = ['code'] + ['CMV']
 
     # 升序排序
-    df = df.sort_values(by = 'CMV',axis = 0,ascending=True)    #python3
-    # df = df.sort(columns = 'CMV',axis = 0,ascending=True)    #python2
+    # df = df.sort_values(by = 'CMV',axis = 0,ascending=True)    #python3
+    df = df.sort(columns = 'CMV',axis = 0,ascending=True)    #python2
     return df
